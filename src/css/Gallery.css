@@ -1,0 +1,257 @@
+.gallery-container {
+    padding: 2rem;
+    min-height: 100vh;
+    width: 100%;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.gallery-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 3rem;
+    margin-bottom: 2rem;
+
+    background: linear-gradient(to right, #fff, #b4c6ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.filter-bar {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 3rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.filter-btn {
+    background: transparent;
+    border: none;
+    color: #aaa;
+    padding: 0.5rem 1.5rem;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    font-family: 'Outfit', sans-serif;
+}
+
+.filter-btn:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.filter-btn.active {
+    background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
+    color: white;
+    box-shadow: 0 0 15px rgba(106, 17, 203, 0.4);
+}
+
+.images-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
+    width: 100%;
+    max-width: 1400px;
+}
+
+.image-card {
+    position: relative;
+    border-radius: 15px;
+    overflow: hidden;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+.image-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.image-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.image-card:hover img {
+    transform: scale(1.05);
+}
+
+
+.dropdown-menu button span {
+    font-size: 1.1rem;
+}
+
+/* Favorite Heart Button */
+.favorite-btn {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    /* Heart emoji carries color usually but fallback */
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 20;
+    backdrop-filter: blur(5px);
+    padding: 0;
+    line-height: 1;
+}
+
+.favorite-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+.favorite-btn.active {
+    background: rgba(255, 0, 0, 0.15);
+    border-color: #ff4d4d;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+}
+
+.image-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 1rem;
+    padding-right: 60px;
+    /* Make space for heart button */
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+    gap: 0.2rem;
+    opacity: 1;
+    transition: all 0.3s ease;
+    pointer-events: none;
+    /* Let clicks pass through to card/button if needed, but button has high z-index so it catches click */
+}
+
+.image-label {
+    font-weight: 600;
+    font-size: 1.1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+
+.image-time {
+    font-size: 0.75rem;
+    color: #ccc;
+}
+
+.no-images {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-size: 1.2rem;
+    color: #888;
+    padding: 3rem;
+}
+
+/* Three-dot menu button */
+.menu-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 10;
+    backdrop-filter: blur(10px);
+}
+
+.menu-button:hover {
+    background: rgba(0, 0, 0, 0.8);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: scale(1.1);
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+    position: absolute;
+    top: 45px;
+    right: 10px;
+    background: rgba(20, 20, 30, 0.95);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    overflow: hidden;
+    z-index: 20;
+    min-width: 150px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dropdown-menu button {
+    width: 100%;
+    padding: 12px 16px;
+    background: transparent;
+    border: none;
+    color: white;
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s ease;
+    font-family: 'Outfit', sans-serif;
+}
+
+.dropdown-menu button:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.dropdown-menu button.delete-option:hover {
+    background: rgba(255, 50, 50, 0.2);
+    color: #ff6b6b;
+}
+
+.dropdown-menu button span {
+    font-size: 1.1rem;
+}

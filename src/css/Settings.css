@@ -1,0 +1,254 @@
+.settings-container {
+    padding: 2rem;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    color: white;
+    font-family: 'Outfit', sans-serif;
+    min-height: calc(100vh - 80px);
+}
+
+.settings-header {
+    margin-bottom: 2rem;
+}
+
+.settings-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.settings-subtitle {
+    color: #aaa;
+    font-size: 1rem;
+}
+
+/* Layout */
+.settings-layout {
+    display: flex;
+    gap: 2rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    overflow: hidden;
+    min-height: 600px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* Tabs Sidebar */
+.settings-tabs {
+    width: 250px;
+    background: rgba(255, 255, 255, 0.02);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 2rem 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.tab-item {
+    padding: 15px 25px;
+    cursor: pointer;
+    color: #888;
+    transition: all 0.2s;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.tab-item:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.tab-item.active {
+    color: white;
+    background: rgba(106, 17, 203, 0.1);
+    border-left: 3px solid #6a11cb;
+}
+
+.tab-icon {
+    font-size: 1.2rem;
+}
+
+/* Content Area */
+.settings-content {
+    flex: 1;
+    padding: 2rem;
+    animation: fadeIn 0.3s ease;
+}
+
+.content-section {
+    max-width: 800px;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Forms */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #ccc;
+    font-size: 0.95rem;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px 15px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: white;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1rem;
+    transition: border 0.2s;
+}
+
+.form-input:focus {
+    border-color: #6a11cb;
+    outline: none;
+}
+
+.save-btn {
+    background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
+    border: none;
+    padding: 12px 30px;
+    border-radius: 25px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s;
+    margin-top: 1rem;
+}
+
+.save-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(106, 17, 203, 0.4);
+}
+
+/* Toggles */
+.toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.2rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.toggle-label h3 {
+    font-size: 1rem;
+    margin-bottom: 0.3rem;
+}
+
+.toggle-label p {
+    font-size: 0.85rem;
+    color: #888;
+}
+
+/* Subscription Cards */
+.sub-cards {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.sub-card {
+    flex: 1;
+    min-width: 200px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s;
+}
+
+.sub-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(106, 17, 203, 0.5);
+}
+
+.sub-card.featured {
+    background: linear-gradient(135deg, rgba(106, 17, 203, 0.2), rgba(37, 117, 252, 0.1));
+    border-color: #6a11cb;
+    box-shadow: 0 10px 30px rgba(106, 17, 203, 0.2);
+}
+
+.plan-name {
+    font-size: 1.2rem;
+    color: #ccc;
+    margin-bottom: 1rem;
+}
+
+.plan-price {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: white;
+}
+
+.plan-price span {
+    font-size: 1rem;
+    color: #888;
+    font-weight: 400;
+}
+
+.plan-btn {
+    width: 100%;
+    padding: 10px;
+    border-radius: 20px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    cursor: pointer;
+    margin-top: 1rem;
+}
+
+.sub-card.featured .plan-btn {
+    background: #6a11cb;
+    border: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .settings-layout {
+        flex-direction: column;
+    }
+
+    .settings-tabs {
+        width: 100%;
+        flex-direction: row;
+        overflow-x: auto;
+        padding: 0;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .tab-item {
+        flex: 1;
+        justify-content: center;
+        white-space: nowrap;
+        padding: 15px;
+    }
+
+    .tab-item.active {
+        border-left: none;
+        border-bottom: 3px solid #6a11cb;
+    }
+
+    .settings-content {
+        padding: 1.5rem;
+    }
+}

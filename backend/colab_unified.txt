@@ -1,0 +1,288 @@
+import subprocess
+import sys
+import os
+import getpass
+import asyncio
+import io
+import base64
+import random
+import time
+import cv2
+import numpy as np
+from PIL import Image
+
+# --- 1. UNIFIED MASTER INSTALLATION ---
+MARKER_FILE = "/content/.env_unified_v1"
+
+def install_deps():
+    print("📦 Installing Unified Dependencies...")
+    
+    # 1. Uninstall Conflicts
+    libs_to_remove = ["numpy", "pillow", "transformers", "diffusers", "accelerate", "huggingface-hub", "controlnet-aux", "onnxruntime"]
+    subprocess.run([sys.executable, "-m", "pip", "uninstall", "-y"] + libs_to_remove, check=False)
+    
+    # 2. Install "The Works"
+    cmd = [
+        sys.executable, "-m", "pip", "install",
+        "numpy<2.0",               
+        "pillow",                  
+        "huggingface-hub>=0.23.0", 
+        "accelerate>=0.31.0",     
+        "transformers>=4.42.0",    
+        "diffusers>=0.29.0",       
+        "torch",
+        "pyngrok",
+        "fastapi",
+        "uvicorn",
+        "nest_asyncio",
+        "rembg",                   
+        "onnxruntime-gpu",         
+        "opencv-python-headless"   
+    ]
+    subprocess.check_call(cmd)
+    
+    # 3. Create Marker
+    with open(MARKER_FILE, "w") as f:
+        f.write("fixed")
+    
+    # 4. Force Restart
+    print("✅ Environment Updated. RESTARTING RUNTIME...")
+    print("👉 PLEASE WAIT 5 SECONDS AND RUN THIS CELL AGAIN!")
+    time.sleep(2)
+    os.kill(os.getpid(), 9)
+    sys.exit()
+
+if not os.path.exists(MARKER_FILE):
+    install_deps()
+
+# --- 2. SERVER SETUP ---
+print("✅ Environment Ready.")
+
+try:
+    from fastapi import FastAPI, HTTPException
+    from fastapi.middleware.cors import CORSMiddleware
+    from pydantic import BaseModel
+    import torch
+    from diffusers import StableDiffusionPipeline, StableDiffusionControlNetPipeline, ControlNetModel, UniPCMultistepScheduler
+    from pyngrok import ngrok, conf
+    import nest_asyncio
+    import uvicorn
+    from rembg import remove as remove_bg
+except ImportError:
+    if os.path.exists(MARKER_FILE):
+        os.remove(MARKER_FILE)
+    print("❌ Critical Import Failed. Removing lockfile. PLEASE RUN AGAIN.")
+    sys.exit()
+
+try:
+    ngrok.kill()
+except:
+    pass
+
+print("\n--- NGROK SETUP ---")
+try:
+    NGROK_AUTH_TOKEN = getpass.getpass("👉 Paste your Ngrok Authtoken: ")
+except:
+    NGROK_AUTH_TOKEN = input("👉 Paste your Ngrok Authtoken: ")
+
+if not NGROK_AUTH_TOKEN.strip():
+    print("❌ Error: No token provided. Script cannot proceed.")
+    sys.exit()
+
+ngrok.set_auth_token(NGROK_AUTH_TOKEN)
+conf.get_default().region = "us"
+
+app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# --- 3. MODEL LOADING (Unified) ---
+print("\n⏳ Initializing Unified AI Engine...")
+try:
+    if torch.cuda.is_available():
+        device = "cuda"
+        dtype = torch.float16
+        print("✅ GPU Detected (Fast Mode)")
+    else:
+        device = "cpu"
+        dtype = torch.float32
+        print("⚠️ No GPU Detected. Running in Slow Mode...")
+
+    # A. Base Model (SD 1.5) - For Text-to-Image
+    model_id = "runwayml/stable-diffusion-v1-5"
+    
+    print("   -> Loading Generator (Text-to-Image)...")
+    txt2img_pipe = StableDiffusionPipeline.from_pretrained(
+        model_id,
+        torch_dtype=dtype,
+        safety_checker=None
+    ).to(device)
+    txt2img_pipe.scheduler = UniPCMultistepScheduler.from_config(txt2img_pipe.scheduler.config)
+
+    # B. ControlNet Model - For Style Transfer
+    print("   -> Loading Transformer (Style Transfer)...")
+    controlnet = ControlNetModel.from_pretrained(
+        "lllyasviel/sd-controlnet-canny",
+        torch_dtype=dtype
+    ).to(device)
+
+    # C. Combined Pipeline - Reusing components to save RAM
+    style_pipe = StableDiffusionControlNetPipeline(
+        vae=txt2img_pipe.vae,
+        text_encoder=txt2img_pipe.text_encoder,
+        tokenizer=txt2img_pipe.tokenizer,
+        unet=txt2img_pipe.unet,
+        scheduler=txt2img_pipe.scheduler,
+        safety_checker=None,
+        feature_extractor=txt2img_pipe.feature_extractor,
+        controlnet=controlnet
+    ).to(device)
+
+    # Optimize
+    if device == "cuda":
+        txt2img_pipe.enable_model_cpu_offload()
+        # style_pipe automatically benefits because they share components
+
+    print("✅ Unified Pipeline Ready.")
+
+except Exception as e:
+    print(f"❌ Error loading models: {e}")
+    txt2img_pipe = None
+    style_pipe = None
+
+# --- 4. UTILITIES ---
+def decode_base64_image(base64_string):
+    image_data = base64.b64decode(base64_string)
+    return Image.open(io.BytesIO(image_data)).convert("RGB")
+
+def encode_image_base64(image):
+    buffered = io.BytesIO()
+    image.save(buffered, format="PNG")
+    return base64.b64encode(buffered.getvalue()).decode("utf-8")
+
+def get_canny_edges(image):
+    image = np.array(image)
+    image = cv2.Canny(image, 100, 200)
+    image = image[:, :, None]
+    image = np.concatenate([image, image, image], axis=2)
+    return Image.fromarray(image)
+
+# --- 5. ENDPOINTS ---
+
+class GenerateRequest(BaseModel):
+    prompt: str
+    style: str = "Anime"
+    aspectRatio: str = "1:1"
+    negativePrompt: str = ""
+    guidanceScale: float = 7.5
+    numImages: int = 1
+    numInferenceSteps: int = 30
+
+class StyleRequest(BaseModel):
+    image: str       
+    style: str       
+    prompt: str = "" 
+    strength: float = 0.5 
+
+@app.get("/")
+def read_root():
+    return {"status": "Artify Unified Backend Ready"}
+
+# Endpoint 1: Generator
+@app.post("/generate")
+def generate_image(req: GenerateRequest):
+    print(f"🎨 Generating: {req.prompt}")
+    try:
+        if txt2img_pipe is None: raise Exception("Model not loaded")
+
+        style_part = req.style if req.style != "None" else ""
+        if style_part == "None": style_part = ""
+        full_prompt = f"{req.prompt}, {style_part}, best quality"
+
+        h, w = 512, 512
+        if req.aspectRatio == "3:4": w, h = 384, 512
+        elif req.aspectRatio == "16:9": w, h = 512, 288
+        w, h = (w // 8) * 8, (h // 8) * 8
+        
+        steps = req.numInferenceSteps
+        if device == "cpu" and steps > 20: steps = 20
+
+        image = txt2img_pipe(
+            full_prompt,
+            negative_prompt=req.negativePrompt,
+            height=h, width=w,
+            num_inference_steps=steps,
+            guidance_scale=req.guidanceScale
+        ).images[0]
+
+        return {"image_url": f"data:image/png;base64,{encode_image_base64(image)}"}
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Endpoint 2: Style Transfer
+@app.post("/style-transfer")
+def style_transfer(req: StyleRequest):
+    print(f"🎨 Restyling: {req.style}")
+    try:
+        input_image = decode_base64_image(req.image)
+
+        if req.style.lower() in ["remove background", "remove bg", "transparent"]:
+            print("✂️ Removing Background...")
+            output_image = remove_bg(input_image)
+            return {"image_url": f"data:image/png;base64,{encode_image_base64(output_image)}"}
+
+        if style_pipe is None: raise Exception("Model not loaded")
+
+        styles_map = {
+            "oil painting": "oil painting style, thick brushstrokes, textures, vincent van gogh style, masterpiece",
+            "sketch": "pencil sketch, charcoal drawing, rough lines, black and white, artistic sketch",
+            "anime": "anime style, studio ghibli, vibrant colors, cel shading, high quality",
+            "neon": "neon style, cyberpunk, glowing lights, synthwave, dark background",
+            "watercolor": "watercolor painting, splashing colors, soft edges, artistic",
+            "3d render": "3d render, blender, octane render, high poly, detailed"
+        }
+
+        base_prompt = styles_map.get(req.style.lower(), req.style)
+        full_prompt = f"{base_prompt}, {req.prompt}, best quality"
+        
+        w, h = input_image.size
+        if max(w, h) > 1024:
+            ratio = 1024 / max(w, h)
+            input_image = input_image.resize((int(w * ratio), int(h * ratio)))
+
+        canny_image = get_canny_edges(input_image)
+        
+        output_image = style_pipe(
+            full_prompt,
+            image=canny_image,
+            num_inference_steps=25,
+            guidance_scale=8.0,
+            controlnet_conditioning_scale=1.0,
+            negative_prompt="longbody, lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality"
+        ).images[0]
+
+        return {"image_url": f"data:image/png;base64,{encode_image_base64(output_image)}"}
+
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# --- 6. START SERVER ---
+try:
+    public_url = ngrok.connect(8000).public_url
+    print(f"\n🚀 PUBLIC URL: {public_url}")
+    print("👉 Use this URL in BOTH TextToImage.jsx AND ImagePlusStyle.jsx")
+    
+    nest_asyncio.apply()
+    config = uvicorn.Config(app, port=8000)
+    server = uvicorn.Server(config)
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(server.serve())
+except Exception as e:
+    print(f"Server Error: {e}")

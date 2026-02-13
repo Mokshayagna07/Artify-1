@@ -1,0 +1,172 @@
+import torch
+from diffusers import StableDiffusionPipeline, StableDiffusionImg2ImgPipeline
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+import io
+import base64
+import nest_asyncio
+import uvicorn
+from pyngrok import ngrok, conf
+import os
+import asyncio
+from PIL import Image
+
+# --- 1. SETUP API ---
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# --- 2. MODEL LOADING ---
+print("⏳ Initializing Unified Model...")
+model_id = "runwayml/stable-diffusion-v1-5"
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+if device == "cuda":
+    print("✅ GPU Detected. Using float16.")
+    dtype = torch.float16
+else:
+    print("⚠️ No GPU Detected. Using float32 (Slow Mode).")
+    dtype = torch.float32
+
+# Load MAIN pipeline (Text-to-Image)
+txt2img_pipe = StableDiffusionPipeline.from_pretrained(
+    model_id,
+    torch_dtype=dtype,
+    safety_checker=None  # Disable safety checker to save RAM/Time
+).to(device)
+
+# Load SECONDARY pipeline (Img2Img) sharing components
+# We strictly separate the python objects to avoid method confusion
+img2img_pipe = StableDiffusionImg2ImgPipeline(
+    vae=txt2img_pipe.vae,
+    text_encoder=txt2img_pipe.text_encoder,
+    tokenizer=txt2img_pipe.tokenizer,
+    unet=txt2img_pipe.unet,
+    scheduler=txt2img_pipe.scheduler,
+    safety_checker=None,
+    feature_extractor=txt2img_pipe.feature_extractor
+).to(device)
+
+if device == "cuda":
+    txt2img_pipe.enable_attention_slicing()
+
+print("✅ Unified Pipelines Ready.")
+
+# --- 3. DATA MODELS ---
+class TextToImageRequest(BaseModel):
+    prompt: str
+    negativePrompt: str = ""
+    aspectRatio: str = "1:1"
+    guidanceScale: float = 7.5
+    numInferenceSteps: int = 30
+
+class StyleTransferRequest(BaseModel):
+    image: str       
+    prompt: str
+    strength: float = 0.75
+    guidance_scale: float = 7.5
+
+# --- 4. UTILITY FUNCTIONS ---
+def image_to_base64(image):
+    buffered = io.BytesIO()
+    image.save(buffered, format="PNG")
+    return base64.b64encode(buffered.getvalue()).decode("utf-8")
+
+def decode_base64_image(base64_string):
+    if "," in base64_string:
+        base64_string = base64_string.split(",")[1]
+    image_data = base64.b64decode(base64_string)
+    return Image.open(io.BytesIO(image_data)).convert("RGB")
+
+# --- 5. ENDPOINTS ---
+@app.get("/")
+def read_root():
+    return {"status": "Unified Backend V3 Running"}
+
+@app.post("/generate")
+def generate_image(req: TextToImageRequest):
+    print(f"🎨 Generating T2I: {req.prompt}")
+    try:
+        # Strict dimension handling to prevent tensor errors
+        h, w = 512, 512
+        if req.aspectRatio == "16:9": w, h = 512, 288
+        elif req.aspectRatio == "3:4": w, h = 384, 512
+        
+        # Ensure dimensions are multiples of 8
+        w, h = (w // 8) * 8, (h // 8) * 8
+
+        image = txt2img_pipe(
+            prompt=req.prompt,
+            negative_prompt=req.negativePrompt,
+            height=h, 
+            width=w,
+            guidance_scale=req.guidanceScale,
+            num_inference_steps=25 # Limit steps for speed
+        ).images[0]
+        
+        return {"image_url": f"data:image/png;base64,{image_to_base64(image)}"}
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/style-transfer")
+def style_transfer(req: StyleTransferRequest):
+    print(f"🎨 Style Transfer: {req.prompt}")
+    try:
+        init_image = decode_base64_image(req.image)
+        
+        # Resize to safe dimensions
+        init_image = init_image.resize((512, 512))
+
+        output_image = img2img_pipe(
+            prompt=req.prompt,
+            image=init_image,
+            strength=req.strength,
+            guidance_scale=req.guidance_scale,
+            num_inference_steps=25
+        ).images[0]
+
+        return {"image_url": f"data:image/png;base64,{image_to_base64(output_image)}"}
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# --- 6. SERVER SETUP ---
+# Kill any existing ngrok tunnels
+try:
+    ngrok.kill()
+except:
+    pass
+
+print("\n--- NGROK SETUP ---")
+try:
+    if "NGROK_AUTHTOKEN" not in os.environ:
+         print("👉 Please enter your Ngrok Authtoken below:")
+         token = input("Ngrok Authtoken: ").strip()
+         if token:
+             ngrok.set_auth_token(token)
+         else:
+             print("⚠️ No token provided. Ngrok will fail.")
+    else:
+        ngrok.set_auth_token(os.environ["NGROK_AUTHTOKEN"])
+except Exception as e:
+    print(f"⚠️ authentication setup skipped: {e}")
+
+try:
+    public_url = ngrok.connect(8000).public_url
+    print(f"\n🚀 PUBLIC URL: {public_url}")
+except Exception as e:
+    print(f"⚠️ Ngrok Connection Failed: {e}")
+
+nest_asyncio.apply()
+config = uvicorn.Config(app, port=8000)
+server = uvicorn.Server(config)
+loop = asyncio.get_event_loop()
+loop.run_until_complete(server.serve())

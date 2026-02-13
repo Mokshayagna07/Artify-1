@@ -1,0 +1,241 @@
+.image-plus-style-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 80px);
+    padding: 2rem;
+    width: 100%;
+}
+
+.ips-content-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    /* Center the two panels */
+    gap: 4rem;
+    /* Space between panels */
+    width: 100%;
+    max-width: 1400px;
+    align-items: flex-start;
+    /* Align tops */
+}
+
+.ips-panel {
+    background: rgba(255, 255, 255, 0.05);
+    /* Glassmorphism */
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 400px;
+    max-width: 400px;
+}
+
+/* Upload Panel (Left) */
+.upload-panel {
+    height: 400px;
+    /* Fixed height for consistency */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.upload-panel:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.upload-area {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    text-align: center;
+}
+
+.upload-placeholder p {
+    color: #ccc;
+    font-size: 1.1rem;
+    font-family: 'Poppins', sans-serif;
+    /* Or similar from design */
+}
+
+.uploaded-preview {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 20px;
+    object-fit: contain;
+}
+
+/* Right Section Container */
+.ips-right-section {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    width: 400px;
+    max-width: 400px;
+    align-items: center;
+    /* Center button below panel */
+}
+
+/* Style Panel (Right) */
+.style-panel {
+    height: 400px;
+    /* Fixed height 400px */
+    padding: 1.5rem;
+    display: flex;
+}
+
+.style-input {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 1rem;
+    font-family: 'Poppins', sans-serif;
+    resize: none;
+    outline: none;
+    text-align: center;
+    /* Screenshot text looks centered? "Describe the style you want..." is centered in the box */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 30%;
+    /* Vertically center placeholder approx */
+}
+
+/* Revert padding top if user types */
+.style-input:not(:placeholder-shown) {
+    padding-top: 0;
+    text-align: left;
+}
+
+.style-input::placeholder {
+    color: #eee;
+    text-align: center;
+    font-family: 'Dancing Script', cursive;
+    /* Assuming the font */
+    font-size: 1.2rem;
+}
+
+/* Generate Button Area */
+.ips-action-area {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+/* Reusing generate btn style or specific if different */
+.generate-btn {
+    background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
+    border: none;
+    padding: 0.8rem 3rem;
+    border-radius: 30px;
+    color: white;
+    font-size: 1.1rem;
+    font-family: 'Dancing Script', cursive;
+    /* Screenshot font looks cursive-ish for the button too? */
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(106, 17, 203, 0.5);
+    transition: transform 0.2s;
+}
+
+.generate-btn:hover {
+    transform: translateY(-2px);
+}
+
+/* Generating State */
+.generating-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #ccc;
+    font-family: 'Outfit', sans-serif;
+    gap: 1rem;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-top: 4px solid #6a11cb;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Result View */
+.result-view {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    animation: fadeIn 0.5s ease;
+}
+
+.result-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* Result Actions */
+.result-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.generate-btn.secondary {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: none;
+}
+
+.generate-btn.secondary:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .ips-content-wrapper {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .ips-panel {
+        max-width: 100%;
+        width: 100%;
+    }
+}

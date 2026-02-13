@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+torch
+transformers
+diffusers
+accelerate
+pillow
+huggingface_hub[hf_xet]

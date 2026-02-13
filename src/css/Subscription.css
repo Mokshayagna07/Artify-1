@@ -1,0 +1,219 @@
+.subscription-container {
+    padding: 2rem 4rem;
+    width: 100%;
+    min-height: 100vh;
+    color: white;
+    font-family: 'Outfit', sans-serif;
+    background: transparent;
+    /* Assuming main app handles bg stars */
+    animation: fadeIn 0.5s ease;
+}
+
+.sub-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 3rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.title-group h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.title-group p {
+    color: #aaa;
+    font-size: 1rem;
+}
+
+.sub-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.billing-toggle {
+    background: #1a1a2e;
+    padding: 4px;
+    border-radius: 30px;
+    display: flex;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.toggle-option {
+    padding: 8px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+    color: #888;
+}
+
+.toggle-option.active {
+    background: #2d2d44;
+    color: white;
+    font-weight: 600;
+}
+
+
+
+/* Cards Grid */
+.plans-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+.plan-card {
+    background: #0f0f16;
+    border-radius: 20px;
+    padding: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.plan-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    border-color: rgba(106, 17, 203, 0.3);
+}
+
+/* Card Header */
+.plan-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 0.5rem;
+}
+
+.plan-icon {
+    font-size: 1.5rem;
+}
+
+.plan-name {
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+/* Pricing */
+.plan-pricing {
+    min-height: 100px;
+    margin-bottom: 1rem;
+}
+
+.price-main {
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.price-unit {
+    font-size: 0.9rem;
+    color: #888;
+    font-weight: 400;
+}
+
+.price-strike {
+    color: #666;
+    text-decoration: line-through;
+    font-size: 1.1rem;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.discount-badge {
+    color: #10b981;
+    /* Green */
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: block;
+    margin-top: 5px;
+}
+
+.plan-desc {
+    font-size: 0.9rem;
+    color: #888;
+    line-height: 1.5;
+    margin-bottom: 2rem;
+    min-height: 80px;
+}
+
+/* Action Button */
+.plan-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 30px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 2rem;
+    transition: opacity 0.2s;
+}
+
+.plan-btn.primary {
+    background: #8b5cf6;
+    /* Light Purple */
+    color: white;
+}
+
+.plan-btn.primary:hover {
+    opacity: 0.9;
+}
+
+.plan-btn.active {
+    background: #272733;
+    color: #888;
+    cursor: default;
+}
+
+/* Features */
+.features-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.features-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.feature-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: #ccc;
+    line-height: 1.4;
+}
+
+.feature-icon {
+    color: #8b5cf6;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+/* Tag/Badge for Best Value if needed - not in image explicitly but common */
+
+@media (max-width: 1000px) {
+    .sub-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .subscription-container {
+        padding: 2rem 1rem;
+    }
+}
